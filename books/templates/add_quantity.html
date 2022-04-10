@@ -1,0 +1,43 @@
+{% extends "base.html" %} 
+{% block content %}
+<script type="text/javascript">
+    $(document).ready(function () {
+        // script that allows only numeric value
+        $('#book_quantity').keypress(function (e) {
+            if (e.keyCode >= 48 && e.keyCode <= 57) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    });
+</script>
+
+<div class="card">
+    <div class="card-header">
+        <h4>{{ book.title }}</h4>
+    </div>
+    <div class="card-body">
+        <p class="card-title">
+            <strong>Author:</strong> {% for author in book.author.all %} {{ author }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p class="card-text">{{ book.description }}</p>
+        <p class="card-text">
+            <strong>ISBN: </strong>{{ book.isbn }}</p>
+        <p class="card-text">
+            <strong>Category:</strong> {% for category in book.category.all %} {{ category }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p class="card-text">
+                <strong>Total quantity:</strong> {{ book.total_quantity }}</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label><strong>Add quantity of the book:</strong></label>
+                <input type="text" name="quantity" class="form-control" id="book_quantity" placeholder="Enter quantity" maxlength="3">
+                <small id="" class="form-text text-muted">Input quantity in numbers.</small>
+            </div>
+            <input type="submit" value="Add" class="btn btn-outline-info mb-2">
+            <a href="{{request.META.HTTP_REFERER}}" class="btn btn-outline-info mb-2">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

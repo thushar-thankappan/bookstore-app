@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h5>Select from available Books to make request:</h5>
+<form class="" action="" method="post">
+  <div class="form-row align-items-center">
+    <div class="col-auto my-1">
+      <select class="" name="book_list">
+        {% for book in context %}
+          <option value="{{ book.title }}">{{ book.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto my-1">
+      <input type="submit" name="" value="Make Book Lend Request">
+    </div>
+  </div>
+  {% csrf_token %}
+</form>
+
+{% endblock %}

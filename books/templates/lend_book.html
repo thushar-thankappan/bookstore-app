@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h4>{{ book.title }}</h4>
+    </div>
+    <div class="card-body">
+        <p class="card-title">
+            <strong>Author:</strong> {% for author in book.author.all %} {{ author }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p class="card-text">{{ book.description }}</p>
+        <p class="card-text">
+            <strong>ISBN: </strong>{{ book.isbn }}</p>
+        <p class="card-text">
+            <strong>Category:</strong> {% for category in book.category.all %} {{ category }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p class="card-text">
+                <strong>Available copies:</strong> {{ book.quantity }}</p>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label><strong>Lend this book to: </strong></label>
+                <select name="reader" id="">
+                    {% for reader in readers %}
+                    <option value="{{ reader.id }}">{{ reader.username }}</option>
+                    {% endfor %}
+                </select>
+                <small id="" class="form-text text-muted">Select reader username.</small>
+            </div>
+            <input type="submit" value="Lend Book" class="btn btn-outline-info mb-2">
+            <a href="{{request.META.HTTP_REFERER}}" class="btn btn-outline-info mb-2">Cancel</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

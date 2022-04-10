@@ -1,0 +1,146 @@
+{% extends "base.html" %} 
+{% load staticfiles %} 
+{% block content %}
+
+<script type="text/javascript">
+  function callme(btn) {
+    var book_id = btn.value;
+    var ans = confirm("Are you sure you want to place lend request for this book?");
+    if (ans == true) {
+        $.ajax({
+        url: "{% url 'make_request' %}",
+        method: 'GET',
+        data: {
+          'book_id': book_id
+        },
+        success: function () {
+          // alert("request made!");
+        },
+        complete: function () {
+          $('#btn-lend' + book_id).prop('disabled', true);
+          $('#btn-lend' + book_id).text('Already requested');
+          document.getElementById("flash_msg").style.display = "inherit";
+        }
+    });
+    }
+  }
+</script>
+
+<div class="alert alert-success" role="alert" id="flash_msg" style="display: none;">
+  <b>Done!</b> Your book request has been submitted! <a href="{% url 'request_history' %}">Click here</a> to view your request history.
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <p class="alert alert-success">{{ message }}</p>
+  {% endfor %}
+{% endif %}
+
+  <form class="mt-4 mb-5" action="" method="GET">
+    <div class="form-row align-items-center">
+      <div class="col-auto">
+        <div class="input-group">
+          <input type="text" class="form-control form-control-lg" id="search_key" placeholder="Search book" value="{{ request.GET.search_key }}" name="search_key">
+        </div>
+      </div>
+      <div class="col-auto">
+       <label class="sr-only" for="filter_key">Filter</label>
+       <select class="form-control form-control-lg" name="filter_key">
+         {% for i in filter_list %}
+            <option value="{{ i.value }}" {% if i.value == request.GET.filter_key %}selected{% endif %}>{{ i.name }}</option>
+         {% endfor %}
+       </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary btn-lg">Search</button>
+      </div>
+    </div>
+    {% csrf_token %}
+  </form>
+
+  {% if context %}
+    <table class="table">
+      <thead class="thead-light">
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Book Title</th>
+            <th scope="col">Author(s)</th>
+            <th scope="col">Total Books</th>
+            {% if user.is_authenticated %}
+            <th scope="col">Available Books</th>
+            <th scope="col">Action</th>
+            {% endif %}
+          </tr>
+      </thead>
+      <tbody>
+        {% for book in context %}
+        <tr>
+          <th scope="col">{{ forloop.counter0|add:context.start_index }}</th>
+          <td><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></td>
+          <td>{% for author in book.author.all %} {{ author }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ book.total_quantity }}</td>
+          {% if user.is_authenticated %}
+          <td>{{ book.quantity }}</td>
+          {% endif %}
+          {% if user.is_authenticated %}
+            {% if user.groups.all.0.name  == 'Readers' %}
+              <td>
+                {% if book.status == 'l' %}
+                <button type="button" name="btn-lend{{book.id}}" id="btn-lend{{book.id}}" class="btn btn-primary" value="{{book.id}}"
+                  disabled>Not available</button>
+                {% elif book.id in book_ids %}
+                <button type="button" name="btn-lend{{book.id}}" id="btn-lend{{book.id}}" class="btn btn-primary" value="{{book.id}}"
+                  disabled>Already requested</button>
+                {% else %}
+                <button type="button" name="btn-lend{{book.id}}" id="btn-lend{{book.id}}" class="btn btn-primary" value="{{book.id}}"
+                  onclick="callme(this);">Make lend request</button>
+                {% endif %}
+              </td>
+            {% else %}
+              <td>
+                {% if book.quantity > 0 %}
+                <a  href="{% url 'lend_book' book.id %}" name="btn-lend{{ book.id }}" class="btn btn-primary">Lend Book</a>
+                {% endif %}
+                <a href="{% url 'add_quantity' book.id %}" name="btn-copy{{ book.id }}" class="btn btn-primary">Add Copy</a>
+              </td>
+            {% endif %}
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% else %}
+    <br><br>
+    <p>No such record found!</p>
+  {% endif %}
+
+  <br>
+  {% if context.has_other_pages %}
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+        {% if context.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=
+                    {{ context.previous_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Privious</a></li>
+        {% else %}
+            <li class="disabled page-item"><a class="page-link" href="#!">Previous</a></li>
+        {% endif %}
+        {% for num in context.paginator.page_range %}
+            {% if context.number == num %}
+                <li class="active page-item"><a class="page-link" href="#!">{{ num }}</a></li>
+            {% else %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ num }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if context.has_next %}
+            <li class="page-item"><a class="page-link"
+                    href="?page={{ context.next_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Next</a></li>
+        {% else %}
+            <li class="disabled page-item"><a class="page-link" href="#!">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+    
+{% endblock %}

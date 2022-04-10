@@ -1,0 +1,209 @@
+{% extends "base.html" %} {% block content %}
+<script type="text/javascript">
+  function show_data(head_title) {
+    $(".req_body" + head_title).toggle();
+  }
+
+  function cancel_request(request_data) {
+    request_id = request_data.value;
+    var ans = confirm("Are you sure you want to cancel this request?");
+    if (ans == true) {
+      $.ajax({
+        url: "{% url 'cancel_request' %}",
+        method: 'GET',
+        data: {
+          'request_id': request_id
+        },
+        success: function () {
+          //window.location.reload();
+        },
+        complete: function () {
+          $("#" + request_id).remove();
+          document.getElementById("flash_msg_cancel").style.display = "inherit";
+          var t = $("#lent_req").text();
+          $("#lent_req").text(t - 1);
+        }
+      });
+    }
+  }
+
+  function return_book(request_data) {
+    request_id = request_data.value;
+    var ans = confirm("Are you sure you want to return this book?");
+    if (ans == true) {
+      $.ajax({
+        url: "{% url 'return_book' %}",
+        method: 'GET',
+        data: {
+          'request_id': request_id
+        },
+        success: function () {
+          //window.location.reload();
+        },
+        complete: function () {
+          $("#" + request_id).remove();
+          document.getElementById("flash_msg_return").style.display = "inherit";
+          var c = $("#book_count").text();
+          $("#book_count").text(c - 1);
+          var r = $("#book_returned").text();
+          $("#book_returned").text(+r + 1);
+        }
+      });
+    }
+  }
+</script>
+
+<div class="alert alert-success" role="alert" id="flash_msg_cancel" style="display: none;">
+  Your book request has been canceled!
+</div>
+
+<div class="alert alert-success" role="alert" id="flash_msg_return" style="display: none;">
+  Your book return request has been sent.
+</div>
+
+<table class="table">
+  <thead class="thead-light">
+    <tr class="t_head1" onclick="show_data(1);">
+      <th colspan="6">Books with me
+        <span class="badge badge-primary badge-pill" id="book_count">{{ context.l.count }}</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="req_body1">
+    {% if context.l.count > 0 %}
+    <tr class="req_body1">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Issue Date</th>
+      <th scope="col">Action</th>
+      <th colspan="2"></th>
+    </tr>
+    {% endif %} {% for book in context.l %}
+    <tr id="{{ book.id }}">
+      <td>
+        <a href="{{ book.book.get_absolute_url  }}">{{ book.book.title }}</a>
+      </td>
+      <td>{{ book.request_date }}</td>
+      <td>{{ book.lent_date }}</td>
+      <td>
+        <button type="button" name="return_book" class="btn btn-primary" value="{{book.id}}" onclick="return_book(this);">Return Book</button>
+      </td>
+      <td colspan="2"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <thead class="thead-light">
+    <tr class="t_head2" onclick="show_data(2);">
+      <th colspan="6">Book Requests - pending
+        <span id="lent_req" class="badge badge-primary badge-pill">{{ context.p.count }}</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="req_body2">
+    {% if context.p.count > 0 %}
+    <tr class="req_body2">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Action</th>
+      <th colspan="3"></th>
+    </tr>
+    {% endif %} {% for book in context.p %}
+    <tr id="{{ book.id }}">
+      <td>
+        <a href="{{ book.book.get_absolute_url  }}">{{ book.book.title }}</a>
+      </td>
+      <td>{{ book.request_date }}</td>
+      <td>
+        <button type="button" name="cancel_req" class="btn btn-primary" value="{{book.id}}" onclick="cancel_request(this);">Cancel request</button>
+      </td>
+      <td colspan="3"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <thead class="thead-light">
+    <tr class="t_head3" onclick="show_data(3);">
+      <th colspan="6">Book Requests - closed
+        <span class="badge badge-primary badge-pill">{{ context.c.count }}</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="req_body3">
+    {% if context.c.count > 0 %}
+    <tr class="req_body3">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Lent Date</th>
+      <th scope="col">Return Date</th>
+      <th scope="col">Close Date</th>
+      <th scope="col">Charge paid</th>
+    </tr>
+    {% endif %} {% for book in context.c %}
+    <tr>
+      <td>
+        <a href="{{ book.book.get_absolute_url  }}">{{ book.book.title }}</a>
+      </td>
+      <td>{{ book.request_date }}</td>
+      <td>{{ book.lent_date }}</td>
+      <td>{{ book.return_date }}</td>
+      <td>{{ book.close_date }}</td>
+      <td>{{ book.charge }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <thead class="thead-light">
+    <tr class="t_head4" onclick="show_data(4);">
+      <th colspan="6">Book Returned
+        <span id="book_returned" class="badge badge-primary badge-pill">{{ context.r.count }}</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="req_body4">
+    {% if context.r.count > 0 %}
+    <tr class="req_body4">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Lent Date</th>
+      <th scope="col">Return Date</th>
+      <th scope="col" colspan="2">Charge paid</th>
+    </tr>
+    {% endif %} {% for book in context.r %}
+    <tr>
+      <td>
+        <a href="{{ book.book.get_absolute_url  }}">{{ book.book.title }}</a>
+      </td>
+      <td>{{ book.request_date }}</td>
+      <td>{{ book.lent_date }}</td>
+      <td>{{ book.return_date }}</td>
+      <td colspan="2">{{ book.charge }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <thead class="thead-light">
+    <tr class="t_head5" onclick="show_data(5);">
+      <th colspan="6">Book requests - Rejected
+        <span class="badge badge-primary badge-pill">{{ context.n.count }}</span>
+      </th>
+    </tr>
+  </thead>
+  <tbody class="req_body5">
+    {% if context.n.count > 0 %}
+    <tr class="req_body5">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Rejected Date</th>
+      <th colspan="3"></th>
+    </tr>
+    {% endif %} {% for book in context.n %}
+    <tr>
+      <td>
+        <a href="{{ book.book.get_absolute_url  }}">{{ book.book.title }}</a>
+      </td>
+      <td>{{ book.request_date }}</td>
+      <td>{{ book.close_date }}</td>
+      <td colspan="3"></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

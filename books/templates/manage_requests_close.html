@@ -1,0 +1,85 @@
+{% extends "base.html" %} {% block content %}
+
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'manage_requests' %}">New Requests <span id="lcount" class="badge badge-primary badge-pill">{{ context.p  }}</span></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'manage_requests_return' %}">Return Requests <span id="rcount" class="badge badge-primary badge-pill">{{ context.r }}</span></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'manage_requests_lent' %}">Books Lent <span id="" class="badge badge-primary badge-pill">{{ context.l }}</span></a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'manage_requests_rejected' %}">Rejected Requests <span id="" class="badge badge-primary badge-pill">{{ context.n }}</span></a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link active" href="{% url 'manage_requests_close' %}">Closed Requests <span id="" class="badge badge-primary badge-pill">{{ context.c }}</span></a>
+  </li>
+</ul>
+
+<table class="table req-table">
+  <thead>
+    {% if context.c > 0 %}
+    <tr class="t_body2">
+      <th scope="col">Book Title</th>
+      <th scope="col">Request Date</th>
+      <th scope="col">Lent Date</th>
+      <th scope="col">Return Date</th>
+      <th scope="col">Close Date</th>
+      <th scope="col">Charge</th>
+      <th scope="col">Reader</th>
+    </tr>
+    {% endif %}
+  </thead>
+  <tbody class="t_body2">
+    {% for req in close_request %}
+    <tr id="{{ req.id }}">
+      <td>
+        <a href="{{ req.book.get_absolute_url  }}">{{ req.book.title }}</a>
+      </td>
+      <td>{{ req.request_date }}</td>
+      <td>{{ req.lent_date }}</td>
+      <td>{{ req.return_date }}</td>
+      <td>{{ req.close_date }}</td>
+      <td>{{ req.charge }}</td>
+      <td>{{ req.reader.username }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if close_request.has_other_pages %}
+<nav aria-label="Page navigation example">
+ <ul class="pagination">
+   {% if close_request.has_previous %}
+   <li class="page-item">
+     <a class="page-link" href="?page=
+                   {{ close_request.previous_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Privious</a>
+   </li>
+   {% else %}
+   <li class="disabled page-item">
+     <a class="page-link" href="#!">Previous</a>
+   </li>
+   {% endif %} {% for num in close_request.paginator.page_range %} {% if close_request.number == num %}
+   <li class="active page-item">
+     <a class="page-link" href="#!">{{ num }}</a>
+   </li>
+   {% else %}
+   <li class="page-item">
+     <a class="page-link" href="?page={{ num }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">{{ num }}</a>
+   </li>
+   {% endif %} {% endfor %} {% if close_request.has_next %}
+   <li class="page-item">
+     <a class="page-link" href="?page={{ close_request.next_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Next</a>
+   </li>
+   {% else %}
+   <li class="disabled page-item">
+     <a class="page-link" href="#!">Next</a>
+   </li>
+   {% endif %}
+ </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

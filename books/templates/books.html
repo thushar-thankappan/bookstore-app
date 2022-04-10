@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <form class="" action="" method="GET">
+    <div class="form-row align-items-center">
+      <div class="col-auto">
+        <label class="sr-only" for="search_key">Search key</label>
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text">Search key</div>
+          </div>
+          <input type="text" class="form-control" id="search_key" placeholder="" value="{{ request.GET.search_key }}" name="search_key">
+        </div>
+      </div>
+      <div class="col-auto">
+       <label class="sr-only" for="filter_key">Filter</label>
+       <select class="form-control mb-2" name="filter_key">
+         {% for i in filter_list %}
+            <option value="{{ i.value }}" {% if i.value == request.GET.filter_key %}selected{% endif %}>{{ i.name }}</option>
+         {% endfor %}
+       </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-info mb-2">Search</button>
+      </div>
+    </div>
+    {% csrf_token %}
+  </form>
+
+  {% if context %}
+    <br>
+    <h5>Books match:</h5>
+    <table class="table">
+      <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Book Title</th>
+            <th scope="col">Author</th>
+            <th scope="col">Available Quantity</th>
+          </tr>
+      </thead>
+      <tbody>
+        {% for book in context %}
+        <tr>
+          <th scope="col">{{ forloop.counter0|add:context.start_index }}</th>
+          <td><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></td>
+          <td>{% for author in book.author.all %} {{ author }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+          <td>{{ book.quantity }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% else %}
+    <br><br>
+    <p>No such record found!</p>
+  {% endif %}
+
+  <br>
+  {% if context.has_other_pages %}
+  <nav aria-label="Page navigation example">
+    <ul class="pagination">
+        {% if context.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page=
+                    {{ context.previous_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Privious</a></li>
+        {% else %}
+            <li class="disabled page-item"><a class="page-link" href="#!">Previous</a></li>
+        {% endif %}
+        {% for num in context.paginator.page_range %}
+            {% if context.number == num %}
+                <li class="active page-item"><a class="page-link" href="#!">{{ num }}</a></li>
+            {% else %}
+                <li class="page-item"><a class="page-link"
+                        href="?page={{ num }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+        {% if context.has_next %}
+            <li class="page-item"><a class="page-link"
+                    href="?page={{ context.next_page_number }}{% if request.GET.filter_key %}&filter_key={{ request.GET.filter_key }}{% endif %}{% if request.GET.search_key %}&search_key={{ request.GET.search_key }}{% endif %}">Next</a></li>
+        {% else %}
+            <li class="disabled page-item"><a class="page-link" href="#!">Next</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+{% endblock %}
